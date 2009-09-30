@@ -83,6 +83,45 @@ module HasTree
                           end)
                end)
     end
+
+    def check_tree
+      errors = []
+      self.all.each do |it|
+        it_error = false
+
+        # without parent
+        begin
+          it.parent_id && it.parent
+        rescue ActiveRecord::RecordNotFound
+          is_error = true
+          errors << [it, "without parent"]
+        end
+
+        # loops
+        max_depth = 10
+        idx = 0
+        node = it.parent
+        while node
+          if idx > max_depth
+            errors << [it, "loop detected"]
+            is_error = true
+            break
+          end
+          node = node.parent
+          idx += 1
+        end
+        next if is_error
+
+        # invalid ancestors
+        if it.ancestors != it.recursive_ancestors
+          errors << [it, "invalid ancestors"]
+          is_error = true
+        end
+        next if is_error
+      end
+      return errors
+    end
+
   end
 
   module InstanceMethods
