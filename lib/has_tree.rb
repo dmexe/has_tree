@@ -96,6 +96,7 @@ module HasTree
           is_error = true
           errors << [it, "without parent"]
         end
+        next if is_error
 
         # loops
         max_depth = 10
